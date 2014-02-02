@@ -128,6 +128,38 @@ EOS
                     expectedStderr: '',
                     expectedStdout: 'go'
                 },
+                'echo followed by function call containing echo with asynchronous method call in expression': {
+                    code: util.heredoc(function (/*<<<EOS
+<?php
+    echo 'first';
+
+    function next($tools) {
+        echo 'second';
+
+        return 3 + $tools->getValue();
+    }
+
+    return next($tools);
+EOS
+*/) {}),
+                    expose: {
+                        'tools': {
+                            getValue: function () {
+                                var deferment = engine.getEnvironment().createDeferment();
+
+                                setTimeout(function () {
+                                    deferment.resolve(2);
+                                });
+
+                                throw deferment;
+                            }
+                        }
+                    },
+                    expectedResult: 5,
+                    expectedResultType: 'integer',
+                    expectedStderr: '',
+                    expectedStdout: 'firstsecond'
+                },
                 'plain object from JavaScript with prototype method': {
                     code: util.heredoc(function (/*<<<EOS
 <?php

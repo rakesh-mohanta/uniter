@@ -190,7 +190,7 @@ define([
 
                     state.setResumeData({
                         label: '$resume$',
-                        node: stackASTNodes[0],
+                        nodes: stackASTNodes,
                         value: result
                     });
 
@@ -300,25 +300,32 @@ define([
                 gotos: gotos,
                 labels: labels,
                 prefix: '',
+                statement: statement,
                 suffix: ''
             });
         });
 
         if (context.resume) {
             (function () {
-                var label = context.resume.label,
+                var index,
+                    label = context.resume.label,
                     gotos = {};
 
                 gotos[label] = true;
                 context.labelRepository.addPending(label);
 
-                statementDatas.unshift({
-                    code: 'goingToLabel_' + label + ' = true; break ' + label + ';',
-                    gotos: gotos,
-                    labels: {},
-                    prefix: '',
-                    suffix: ''
-                });
+                for (index = 0; index < statementDatas.length; index++) {
+                    if (statementDatas[index].statement.name !== 'N_FUNCTION_STATEMENT') {
+                        statementDatas.splice(index, 0, {
+                            code: 'goingToLabel_' + label + ' = true; break ' + label + ';',
+                            gotos: gotos,
+                            labels: {},
+                            prefix: '',
+                            suffix: ''
+                        });
+                        break;
+                    }
+                }
             }());
         }
 
@@ -563,6 +570,13 @@ define([
             'N_FUNCTION_CALL': function (node, interpret, context) {
                 var args = [];
 
+                if (context.resume && context.resume.nodes.indexOf(node) > -1) {
+                    context.labelRepository.found(context.resume.label);
+                    if (node === context.resume.nodes[context.resume.nodes.length - 1]) {
+                        return 'tools.getResumeValue()';
+                    }
+                }
+
                 util.each(node.args, function (arg) {
                     args.push(interpret(arg));
                 });
@@ -662,9 +676,11 @@ define([
             'N_METHOD_CALL': function (node, interpret, context) {
                 var code = '';
 
-                if (context.resume && node === context.resume.node) {
+                if (context.resume && context.resume.nodes.indexOf(node) > -1) {
                     context.labelRepository.found(context.resume.label);
-                    return 'tools.getResumeValue()';
+                    if (node === context.resume.nodes[context.resume.nodes.length - 1]) {
+                        return 'tools.getResumeValue()';
+                    }
                 }
 
                 util.each(node.calls, function (call) {
