@@ -9,9 +9,11 @@
 
 /*global define */
 define([
-    'js/util'
+    'js/util',
+    './Deferment'
 ], function (
-    util
+    util,
+    Deferment
 ) {
     'use strict';
 
@@ -20,6 +22,10 @@ define([
     }
 
     util.extend(PHPEnvironment.prototype, {
+        createDeferment: function () {
+            return new Deferment(new Error());
+        },
+
         getGlobalScope: function () {
             return this.state.getGlobalScope();
         }

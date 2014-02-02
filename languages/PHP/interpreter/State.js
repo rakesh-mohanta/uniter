@@ -34,6 +34,7 @@ define([
         this.globalScope = new Scope(callStack, valueFactory, null);
         this.referenceFactory = new ReferenceFactory(valueFactory);
         this.callStack = callStack;
+        this.resumeData = null;
         this.valueFactory = valueFactory;
     }
 
@@ -54,8 +55,16 @@ define([
             return this.referenceFactory;
         },
 
+        getResumeData: function () {
+            return this.resumeData;
+        },
+
         getValueFactory: function () {
             return this.valueFactory;
+        },
+
+        setResumeData: function (data) {
+            this.resumeData = data;
         }
     });
 
