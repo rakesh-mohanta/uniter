@@ -581,7 +581,7 @@ define([
                     args.push(interpret(arg));
                 });
 
-                return '(' + interpret(node.func, {getValue: true}) + '.call' + context.getAnchor(node) + '([' + args.join(', ') + '], namespaceScope) || tools.valueFactory.createNull())';
+                return '(' + interpret(node.func, {getValue: true}) + '.' + context.getAnchor(node) + 'call([' + args.join(', ') + '], namespaceScope) || tools.valueFactory.createNull())';
             },
             'N_GOTO_STATEMENT': function (node, interpret, context) {
                 var code = '',
