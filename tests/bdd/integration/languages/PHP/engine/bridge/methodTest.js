@@ -102,6 +102,32 @@ EOS
                     expectedStderr: '',
                     expectedStdout: ''
                 },
+                'echo followed by returning expression containing asynchronous method call result': {
+                    code: util.heredoc(function (/*<<<EOS
+<?php
+    echo 'go';
+
+    return 4 + $tools->getValue();
+EOS
+*/) {}),
+                    expose: {
+                        'tools': {
+                            getValue: function () {
+                                var deferment = engine.getEnvironment().createDeferment();
+
+                                setTimeout(function () {
+                                    deferment.resolve(2);
+                                });
+
+                                throw deferment;
+                            }
+                        }
+                    },
+                    expectedResult: 6,
+                    expectedResultType: 'integer',
+                    expectedStderr: '',
+                    expectedStdout: 'go'
+                },
                 'plain object from JavaScript with prototype method': {
                     code: util.heredoc(function (/*<<<EOS
 <?php

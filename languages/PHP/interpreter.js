@@ -189,6 +189,7 @@ define([
                     var stackASTNodes = exception.getStackASTNodes(rowColumnToNodeMap);
 
                     state.setResumeData({
+                        label: '$resume$',
                         node: stackASTNodes[0],
                         value: result
                     });
@@ -302,6 +303,24 @@ define([
                 suffix: ''
             });
         });
+
+        if (context.resume) {
+            (function () {
+                var label = context.resume.label,
+                    gotos = {};
+
+                gotos[label] = true;
+                context.labelRepository.addPending(label);
+
+                statementDatas.unshift({
+                    code: 'goingToLabel_' + label + ' = true; break ' + label + ';',
+                    gotos: gotos,
+                    labels: {},
+                    prefix: '',
+                    suffix: ''
+                });
+            }());
+        }
 
         util.each(statementDatas, function (statementData, index) {
             if (index > 0) {
@@ -644,6 +663,7 @@ define([
                 var code = '';
 
                 if (context.resume && node === context.resume.node) {
+                    context.labelRepository.found(context.resume.label);
                     return 'tools.getResumeValue()';
                 }
 
