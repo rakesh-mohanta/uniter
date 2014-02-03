@@ -87,7 +87,20 @@ define([
             result,
             callStack = state.getCallStack(),
             globalScope = state.getGlobalScope(),
+            timer = state.getTimer(),
             tools = {
+                checkTimeLimit: function () {
+                    var maxSeconds;
+
+                    if (timer.getMilliseconds() > state.getTimeoutTime()) {
+                        maxSeconds = state.getMaxSeconds();
+
+                        throw new PHPFatalError(PHPFatalError.MAX_EXEC_TIME_EXCEEDED, {
+                            seconds: maxSeconds,
+                            suffix: maxSeconds > 1 ? 's' : ''
+                        });
+                    }
+                },
                 createClosure: function (func) {
                     func[INVOKE_MAGIC_METHOD] = func;
                     return tools.valueFactory.createObject(func, 'Closure');
@@ -144,6 +157,7 @@ define([
         (function () {
             var internals = {
                     callStack: callStack,
+                    state: state,
                     stdout: stdout,
                     valueFactory: valueFactory
                 };
@@ -415,7 +429,7 @@ define([
             'N_DO_WHILE_STATEMENT': function (node, interpret/*, context*/) {
                 var code = interpret(node.body);
 
-                return 'do {' + code + '} while (' + interpret(node.condition) + '.coerceToBoolean().getNative());';
+                return 'do {tools.checkTimeLimit();' + code + '} while (' + interpret(node.condition) + '.coerceToBoolean().getNative());';
             },
             'N_ECHO_STATEMENT': function (node, interpret) {
                 return 'stdout.write(' + interpret(node.expression) + '.coerceToString().getNative());';
@@ -806,7 +820,7 @@ define([
                     code += interpret(statement);
                 });
 
-                return 'while (' + interpret(node.condition) + '.coerceToBoolean().getNative()) {' + code + '}';
+                return 'while (' + interpret(node.condition) + '.coerceToBoolean().getNative()) {tools.checkTimeLimit();' + code + '}';
             }
         }
     };

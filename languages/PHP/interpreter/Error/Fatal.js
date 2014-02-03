@@ -23,7 +23,8 @@ define([
             3: 'Class \'${name}\' not found',
             4: 'Call to undefined method ${className}::${methodName}()',
             5: '\'goto\' into loop or switch statement is disallowed',
-            6: '${name}() must take exactly 1 argument'
+            6: '${name}() must take exactly 1 argument',
+            7: 'Maximum execution time of ${seconds} second${suffix} exceeded'
         };
 
     function PHPFatalError(code, variables) {
@@ -38,7 +39,8 @@ define([
         CLASS_NOT_FOUND: 3,
         UNDEFINED_METHOD: 4,
         GOTO_DISALLOWED: 5,
-        EXPECT_EXACTLY_1_ARG: 6
+        EXPECT_EXACTLY_1_ARG: 6,
+        MAX_EXEC_TIME_EXCEEDED: 7
     });
 
     return PHPFatalError;
